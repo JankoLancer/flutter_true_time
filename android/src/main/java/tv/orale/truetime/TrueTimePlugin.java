@@ -1,6 +1,7 @@
 package tv.orale.truetime;
 
 import android.util.Log;
+import android.app.Activity;
 
 import com.instacart.library.truetime.TrueTimeRx;
 
@@ -21,12 +22,17 @@ import io.reactivex.schedulers.Schedulers;
  * TrueTimePlugin
  */
 public class TrueTimePlugin implements MethodCallHandler {
+    private final Activity activity;
     /**
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "true_time");
-        channel.setMethodCallHandler(new TrueTimePlugin());
+        channel.setMethodCallHandler(new TrueTimePlugin(registrar.activity()));
+    }
+
+    private TrueTimePlugin(Activity activity) {
+        this.activity = activity;
     }
 
     @Override
@@ -39,6 +45,7 @@ public class TrueTimePlugin implements MethodCallHandler {
                 TrueTimeRx.build()
                         .withConnectionTimeout((int) call.argument("timeout"))
                         .withRetryCount((int) call.argument("retryCount"))
+                        .withSharedPreferencesCache(activity)
                         .withLoggingEnabled((Boolean) call.argument("logging"))
                         .initializeRx((String) call.argument("ntpServer"))
                         .subscribeOn(Schedulers.io())
